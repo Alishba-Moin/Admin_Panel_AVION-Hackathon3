@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { ProductProvider } from "../../Context/ProductContext";
+import ConditionalSideBar from "@/app/components/conditionalSidebar";
+import DataFetching from "@/FetchData";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -25,10 +28,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+         <DataFetching/>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ProductProvider>  
         {children}
+        <ConditionalSideBar/>
+        </ProductProvider>  
+
       </body>
     </html>
   );

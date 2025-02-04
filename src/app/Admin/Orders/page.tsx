@@ -55,6 +55,7 @@ export default function ListView() {
       </div>
     );
   }
+if (error) return <div>{error}</div>;
 
   return (
     <main className="flex flex-col gap-4 p-5">

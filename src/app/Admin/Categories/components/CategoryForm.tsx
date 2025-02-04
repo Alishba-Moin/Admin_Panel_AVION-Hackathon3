@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface Category {
   name: string;
@@ -11,18 +11,23 @@ interface Category {
 export default function Form() {
   const [data, setData] = useState<Category>({ name: '', slug: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const [id, setId] = useState<string | null>(null);
 
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const id = searchParams.get('id');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const categoryId = params.get('id');
+      setId(categoryId);
+    }
+  }, []);
 
   const fetchData = async () => {
     if (id) {
       const response = await fetch('/api/categories');
       const categories: Category[] = await response.json();
       const category = categories.find((cat: any) => cat._id === id);
-
-      // If a category is found, set the form data, otherwise, set empty fields
       setData(category || { name: '', slug: '' });
     }
   };
@@ -33,8 +38,8 @@ export default function Form() {
     }
   }, [id]);
 
-  const handleData = (key: string, value: any) => {
-    setData((prevData: any) => ({
+  const handleData = (key: string, value: string) => {
+    setData((prevData) => ({
       ...prevData,
       [key]: value,
     }));
@@ -45,13 +50,8 @@ export default function Form() {
     try {
       await fetch('/api/categories', {
         method: 'POST',
-        body: JSON.stringify({
-          name: data.name,
-          slug: data.slug,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        body: JSON.stringify({ name: data.name, slug: data.slug }),
+        headers: { 'Content-Type': 'application/json' },
       });
       setData({ name: '', slug: '' });
     } catch (error) {
@@ -65,14 +65,8 @@ export default function Form() {
     try {
       await fetch('/api/categories', {
         method: 'PUT',
-        body: JSON.stringify({
-          id,
-          name: data.name,
-          slug: data.slug,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        body: JSON.stringify({ id, name: data.name, slug: data.slug }),
+        headers: { 'Content-Type': 'application/json' },
       });
       router.push('/Admin/Categories');
     } catch (error) {
@@ -81,22 +75,13 @@ export default function Form() {
     setIsLoading(false);
   };
 
-  // Debugging to check the structure of the data
-  useEffect(() => {
-    console.log('Fetched Data:', data);
-  }, [data]);
-
   return (
     <div className="flex flex-col gap-3 bg-white rounded-xl p-5 w-full md:w-[400px]">
       <h1 className="font-semibold">{id ? 'Update' : 'Create'} Category</h1>
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (id) {
-            handleUpdate();
-          } else {
-            handleCreate();
-          }
+          id ? handleUpdate() : handleCreate();
         }}
         className="flex flex-col gap-3"
       >
@@ -106,10 +91,9 @@ export default function Form() {
           </label>
           <input
             id="category-name"
-            name="category-name"
             type="text"
             placeholder="Enter Name"
-            value={typeof data?.name === 'string' ? data?.name : ''}
+            value={data.name}
             onChange={(e) => handleData('name', e.target.value)}
             className="border px-4 py-2 rounded-lg w-full focus:outline-none"
           />
@@ -120,10 +104,9 @@ export default function Form() {
           </label>
           <input
             id="category-slug"
-            name="category-slug"
             type="text"
             placeholder="Enter Slug"
-            value={typeof data?.slug === 'string' ? data?.slug : ''}
+            value={data.slug}
             onChange={(e) => handleData('slug', e.target.value)}
             className="border px-4 py-2 rounded-lg w-full focus:outline-none"
           />

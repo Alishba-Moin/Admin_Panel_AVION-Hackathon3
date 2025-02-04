@@ -18,6 +18,7 @@ export default function ListView() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter(); // Move useRouter hook here inside the component
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -55,7 +56,7 @@ export default function ListView() {
   };
 
   const handleUpdate = (id: string) => {
-    const router = useRouter();
+    // Now `router.push` is directly used inside `handleUpdate`
     router.push(`/Admin/Products/form?id=${id}`);
   };
 

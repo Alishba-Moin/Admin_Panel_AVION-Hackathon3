@@ -5,16 +5,16 @@ import Images from "./Images";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Page() {
-    const router = useRouter();
-    const [data, setData] = useState<ProductData>({
-      name: "",
-      price: 0,
-      quantity: 0,
-      category: "",
-    });
-  
-    const [featureImage, setFeatureImage] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const [data, setData] = useState<ProductData>({
+    name: "",
+    price: 0,
+    quantity: 0,
+    category: "",
+  });
+
+  const [featureImage, setFeatureImage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
 
@@ -40,7 +40,7 @@ export default function Page() {
   const handleCreate = async () => {
     setIsLoading(true);
     try {
-       await fetch("/api/products", {
+      await fetch("/api/products", {
         method: "POST",
         body: JSON.stringify({
           ...data,
@@ -80,12 +80,11 @@ export default function Page() {
         headers: { "Content-Type": "application/json" },
       });
 
-
       alert("Product updated successfully!");
       router.push("/Admin/Products");
     } catch (error) {
-        console.error(error);
-        alert(error instanceof Error ? error.message : "An unknown error occurred");
+      console.error(error);
+      alert(error instanceof Error ? error.message : "An unknown error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -93,11 +92,15 @@ export default function Page() {
 
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        id ? handleUpdate() : handleCreate();
-      }}
-      className="flex flex-col gap-4 p-5"
+     onSubmit={(e) => {
+  e.preventDefault();
+  if (id) {
+    handleUpdate();  // Function call if id exists
+  } else {
+    handleCreate();  // Function call if id doesn't exist
+  }
+}}
+     className="flex flex-col gap-4 p-5"
     >
       <div className="flex justify-between w-full items-center">
         <h1 className="font-semibold">{id ? "Update Product" : "Create New Product"}</h1>

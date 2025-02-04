@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import BasicDetails, { ProductData } from "./BasicDetails";
 import Images from "./Images";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,7 +18,6 @@ export default function Page() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
 
-  // 🔹 Fetch product data for updating
   useEffect(() => {
     if (id) {
       fetch(`/api/products?id=${id}`)
@@ -28,7 +27,6 @@ export default function Page() {
     }
   }, [id]);
 
-  // 🔹 Handle input changes
   const handleData = (key: keyof ProductData, value: any) => {
     setData((prevData) => ({
       ...prevData,
@@ -36,7 +34,6 @@ export default function Page() {
     }));
   };
 
-  // 🔹 Handle Create Product
   const handleCreate = async () => {
     setIsLoading(true);
     try {
@@ -44,7 +41,7 @@ export default function Page() {
         method: "POST",
         body: JSON.stringify({
           ...data,
-          image: featureImage || "", // Ensure non-null value
+          image: featureImage || "",
         }),
         headers: { "Content-Type": "application/json" },
       });
@@ -66,7 +63,6 @@ export default function Page() {
     }
   };
 
-  // 🔹 Handle Update Product
   const handleUpdate = async () => {
     setIsLoading(true);
     try {
@@ -91,36 +87,38 @@ export default function Page() {
   };
 
   return (
-    <form
-     onSubmit={(e) => {
-  e.preventDefault();
-  if (id) {
-    handleUpdate();  // Function call if id exists
-  } else {
-    handleCreate();  // Function call if id doesn't exist
-  }
-}}
-     className="flex flex-col gap-4 p-5"
-    >
-      <div className="flex justify-between w-full items-center">
-        <h1 className="font-semibold">{id ? "Update Product" : "Create New Product"}</h1>
-        <button
-          disabled={isLoading}
-          className="px-4 py-2 bg-blue-500 text-white rounded"
-          type="submit"
-        >
-          {id ? "Update" : "Create"}
-        </button>
-      </div>
-      <div className="flex flex-col md:flex-row gap-5">
-        <div className="flex-1">
-          <BasicDetails data={data} handleData={handleData} />
+    <Suspense fallback={<div>Loading...</div>}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (id) {
+            handleUpdate();
+          } else {
+            handleCreate();
+          }
+        }}
+        className="flex flex-col gap-4 p-5"
+      >
+        <div className="flex justify-between w-full items-center">
+          <h1 className="font-semibold">{id ? "Update Product" : "Create New Product"}</h1>
+          <button
+            disabled={isLoading}
+            className="px-4 py-2 bg-blue-500 text-white rounded"
+            type="submit"
+          >
+            {id ? "Update" : "Create"}
+          </button>
         </div>
-        <div className="flex-1">
-          <Images data={data} featureImage={featureImage} setFeatureImage={setFeatureImage} />
+        <div className="flex flex-col md:flex-row gap-5">
+          <div className="flex-1">
+            <BasicDetails data={data} handleData={handleData} />
+          </div>
+          <div className="flex-1">
+            <Images data={data} featureImage={featureImage} setFeatureImage={setFeatureImage} />
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </Suspense>
   );
 }
 

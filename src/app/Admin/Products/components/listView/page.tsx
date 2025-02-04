@@ -124,3 +124,4 @@ function Row({ item, index, onDelete, onUpdate }: { item: Product; index: number
     </tr>
   );
 }
+

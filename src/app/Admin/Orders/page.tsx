@@ -55,7 +55,6 @@ export default function ListView() {
       </div>
     );
   }
-  if (error) return <div>{error instanceof Error ? error.message : "An unknown error occurred"}</div>;
 
   return (
     <main className="flex flex-col gap-4 p-5">

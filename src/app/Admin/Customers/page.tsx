@@ -35,6 +35,8 @@ export default function ListView() {
   
   if (error) return <div>{error instanceof Error ? error.message : "An unknown error occurred"}</div>;
 
+if (error) return <div>{error}</div>;
+
   return (
     <main className="flex flex-col gap-4 p-5">
     <div className="flex justify-between items-center">

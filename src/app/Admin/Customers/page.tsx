@@ -33,6 +33,8 @@ export default function ListView() {
     GetCustomers();
   }, []);
 
+if (error) return <div>{error}</div>;
+
   return (
     <main className="flex flex-col gap-4 p-5">
     <div className="flex justify-between items-center">

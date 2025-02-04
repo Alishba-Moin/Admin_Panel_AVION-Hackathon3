@@ -92,12 +92,15 @@ export default function Page() {
 
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        // Check if the 'id' exists and call either handleUpdate or handleCreate
-        id ? handleUpdate() : handleCreate(); // Ensure function is called
-      }}
-      className="flex flex-col gap-4 p-5"
+     onSubmit={(e) => {
+  e.preventDefault();
+  if (id) {
+    handleUpdate();  // Function call if id exists
+  } else {
+    handleCreate();  // Function call if id doesn't exist
+  }
+}}
+     className="flex flex-col gap-4 p-5"
     >
       <div className="flex justify-between w-full items-center">
         <h1 className="font-semibold">{id ? "Update Product" : "Create New Product"}</h1>

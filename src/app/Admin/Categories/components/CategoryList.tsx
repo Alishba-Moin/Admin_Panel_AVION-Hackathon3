@@ -4,16 +4,23 @@ import { Trash2, Edit2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
+interface Category {
+  _id: string;
+  name: string;
+  slug: { current: string };
+  productCount: number;
+}
+
 export default function ListView() {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // ✅ Fetch Categories Function (Moved outside useEffect)
+  // ✅ Fetch Categories Function
   const fetchCategories = async () => {
     try {
       const res = await fetch('/api/categories');
-      const data = await res.json();
+      const data: Category[] = await res.json();
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -54,6 +61,7 @@ export default function ListView() {
       </div>
     );
   }
+
   return (
     <div className="flex-1 flex flex-col gap-3 md:pr-5 md:px-0 px-5 rounded-xl">
       <h1 className="text-xl">Categories</h1>
@@ -93,3 +101,4 @@ export default function ListView() {
     </div>
   );
 }
+

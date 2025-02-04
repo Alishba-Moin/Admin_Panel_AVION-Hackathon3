@@ -1,11 +1,13 @@
 "use client";
-import { useEffect, useState, Suspense } from "react";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import BasicDetails, { ProductData } from "./BasicDetails";
 import Images from "./Images";
-import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Page() {
   const router = useRouter();
+  const [id, setId] = useState<string | null>(null);
   const [data, setData] = useState<ProductData>({
     name: "",
     price: 0,
@@ -15,18 +17,35 @@ export default function Page() {
 
   const [featureImage, setFeatureImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+  const [isFetching, setIsFetching] = useState(false);
 
+  // ✅ Extract "id" from URL without using useSearchParams()
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const productId = params.get("id");
+      setId(productId);
+    }
+  }, []);
+
+  // ✅ Fetch product details if "id" exists (for edit mode)
   useEffect(() => {
     if (id) {
+      setIsFetching(true);
       fetch(`/api/products?id=${id}`)
         .then((res) => res.json())
-        .then((product) => setData(product))
-        .catch((error) => console.error("Error fetching product:", error));
+        .then((product) => {
+          setData(product);
+          setIsFetching(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching product:", error);
+          setIsFetching(false);
+        });
     }
   }, [id]);
 
+  // ✅ Update data when input changes
   const handleData = (key: keyof ProductData, value: any) => {
     setData((prevData) => ({
       ...prevData,
@@ -34,6 +53,7 @@ export default function Page() {
     }));
   };
 
+  // ✅ Create new product
   const handleCreate = async () => {
     setIsLoading(true);
     try {
@@ -63,6 +83,7 @@ export default function Page() {
     }
   };
 
+  // ✅ Update existing product
   const handleUpdate = async () => {
     setIsLoading(true);
     try {
@@ -87,28 +108,32 @@ export default function Page() {
   };
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (id) {
-            handleUpdate();
-          } else {
-            handleCreate();
-          }
-        }}
-        className="flex flex-col gap-4 p-5"
-      >
-        <div className="flex justify-between w-full items-center">
-          <h1 className="font-semibold">{id ? "Update Product" : "Create New Product"}</h1>
-          <button
-            disabled={isLoading}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
-            type="submit"
-          >
-            {id ? "Update" : "Create"}
-          </button>
-        </div>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (id) {
+          handleUpdate();
+        } else {
+          handleCreate();
+        }
+      }}
+      className="flex flex-col gap-4 p-5"
+    >
+      <div className="flex justify-between w-full items-center">
+        <h1 className="font-semibold">{id ? "Update Product" : "Create New Product"}</h1>
+        <button
+          disabled={isLoading}
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+          type="submit"
+        >
+          {isLoading ? "Processing..." : id ? "Update" : "Create"}
+        </button>
+      </div>
+
+      {/* Show loading state when fetching product */}
+      {isFetching ? (
+        <div className="text-center text-gray-500">Loading product details...</div>
+      ) : (
         <div className="flex flex-col md:flex-row gap-5">
           <div className="flex-1">
             <BasicDetails data={data} handleData={handleData} />
@@ -117,9 +142,7 @@ export default function Page() {
             <Images data={data} featureImage={featureImage} setFeatureImage={setFeatureImage} />
           </div>
         </div>
-      </form>
-    </Suspense>
+      )}
+    </form>
   );
 }
-
-

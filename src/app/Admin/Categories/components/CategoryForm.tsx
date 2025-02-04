@@ -3,8 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+interface Category {
+  name: string;
+  slug: string;
+}
+
 export default function Form() {
-  const [data, setData] = useState<any>({ name: '', slug: '' });
+  const [data, setData] = useState<Category>({ name: '', slug: '' });
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
@@ -14,7 +19,7 @@ export default function Form() {
   const fetchData = async () => {
     if (id) {
       const response = await fetch('/api/categories');
-      const categories = await response.json();
+      const categories: Category[] = await response.json();
       const category = categories.find((cat: any) => cat._id === id);
 
       // If a category is found, set the form data, otherwise, set empty fields

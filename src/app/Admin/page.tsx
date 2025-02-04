@@ -1,84 +1,56 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useProducts } from "../../../Context/ProductContext";  // Import the custom hook
 
-const Dashboard = () => {
-  const { products } = useProducts();  // Access products from context
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [totalStock, setTotalStock] = useState(0);
-  const [categoryWiseAmount, setCategoryWiseAmount] = useState<any>({});
+import { useState, useEffect } from "react";
+import { client } from "@/sanity/lib/client";
+import CountMeter from "@/app/components/CountMeter";
+import OrdersChart from "@/app/components/OrdersChart";
+import RevenueChart from "@/app/components/RevenueChart";
+
+export default function Page() {
+  const [data, setData] = useState<
+    { date: string; data: { totalOrders: number; totalRevenue: number } }[]
+  >([]);
 
   useEffect(() => {
-    let total = 0;
-    let totalQuantity = 0;
-    let categoryAmounts: { [key: string]: number } = {};
+    fetchOrdersData();
+  }, []);
 
-    products.forEach((product) => {
-      total += product.stock * product.price;
-      totalQuantity += product.stock;
+  // ✅ Fetching Orders & Revenue Data
+  const fetchOrdersData = async () => {
+    try {
+      const today = new Date();
+      const lastWeek = new Date();
+      lastWeek.setDate(today.getDate() - 6);
 
-      if (categoryAmounts[product.categoryName]) {
-        categoryAmounts[product.categoryName] += product.stock * product.price;
-      } else {
-        categoryAmounts[product.categoryName] = product.stock * product.price;
-      }
-    });
+      const startDate = lastWeek.toISOString().split("T")[0];
+      const endDate = today.toISOString().split("T")[0];
 
-    setTotalAmount(total);
-    setTotalStock(totalQuantity);
-    setCategoryWiseAmount(categoryAmounts);
-  }, [products]);
+      // ✅ Updated Query
+      const query = `*[_type == "order" && date >= $startDate && date <= $endDate] {
+        date,
+        "data": {
+          "totalOrders": count(orderId), 
+          "totalRevenue": sum(orderAmount) // ✅ Summing revenue
+        }
+      } | order(date asc)`;
+
+      const result = await client.fetch(query, { startDate, endDate });
+
+      console.log("Fetched Data:", result); // 🛠️ Debugging Line
+
+      setData(result);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 md:ml-64 overflow-hidden">
-      <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-8 text-center">
-        Dashboard - Avion
-      </h1>
-
-      {/* Total Products and Stock */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-        <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <h2 className="text-lg md:text-xl font-bold text-gray-700">
-            Total Products Amount
-          </h2>
-          <p className="text-2xl md:text-3xl font-bold text-green-700 mt-4">
-            €{totalAmount.toFixed(2)}
-          </p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <h2 className="text-lg md:text-xl font-bold text-gray-700">
-            Total Stock Quantity
-          </h2>
-          <p className="text-2xl md:text-3xl font-bold text-blue-900 mt-4">
-            {totalStock}
-          </p>
-        </div>
+    <main className="flex flex-col gap-6 p-5">
+      <CountMeter />
+      <div className="flex flex-col md:flex-row gap-5">
+        <RevenueChart items={data} />
+        <OrdersChart items={data.map((item) => ({ date: item.date, totalOrders: item.data.totalOrders }))} />
       </div>
-
-      {/* Category-Wise Total Amount */}
-      <div className="mt-8 bg-white shadow-lg rounded-lg w-full max-w-4xl p-6 overflow-hidden">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-700 mb-4 text-center">
-          Category-Wise Total Amount
-        </h2>
-        <div className="space-y-4">
-          {Object.keys(categoryWiseAmount).map((category) => (
-            <div
-              key={category}
-              className="flex justify-between items-center border-b pb-2"
-            >
-              <span className="text-sm md:text-lg font-semibold">
-                {category.toUpperCase()}
-              </span>
-              <span className="text-sm md:text-lg font-bold text-blue-900">
-                €{categoryWiseAmount[category].toFixed(2)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    </main>
   );
-};
-
-export default Dashboard;
+}

@@ -1,84 +1,112 @@
 "use client";
 
+import {
+  Layers2,
+  LayoutDashboard,
+  LogOut,
+  PackageOpen,
+  ShoppingCart,
+  User,
+} from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { FaBox, FaChartBar, FaList, FaUser, FaTimes, FaBars, FaSignOutAlt } from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
-const SideBar = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const router = useRouter();
+// Define the type for menu items
+interface MenuItem {
+  name: string;
+  link: string;
+  icon: JSX.Element;
+  isLogout?: boolean
+}
 
+export default function Sidebar() {
+  const router = useRouter(); // Get the router instance
+
+  const menuList: MenuItem[] = [
+    {
+      name: "Dashboard",
+      link: "/Admin",
+      icon: <LayoutDashboard className="h-5 w-5" />,
+    },
+    {
+      name: "Products",
+      link: "/Admin/Products",
+      icon: <PackageOpen className="h-5 w-5" />,
+    },
+    {
+      name: "Categories",
+      link: "/Admin/Categories",
+      icon: <Layers2 className="h-5 w-5" />,
+    },
+    {
+      name: "Orders",
+      link: "/Admin/Orders",
+      icon: <ShoppingCart className="h-5 w-5" />,
+    },
+    {
+      name: "Customers",
+      link: "/Admin/Customers",
+      icon: <User className="h-5 w-5" />,
+    },
+    {
+      // This is the logout button item
+      name: "Logout",
+      link: "",
+      icon: <LogOut className="h-5 w-5" />,
+      isLogout: true, // Custom flag to handle logout button separately
+    },
+  ];
+
+  // Handle Logout with localStorage
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    router.push("/");
-   
+    // Remove user data from localStorage on logout
+    localStorage.removeItem("user"); // Replace 'user' with your key
+    // Redirect to login page after logout
+    router.push("/Login"); 
   };
 
   return (
-    <div className="z-50">
-      {/* Header when Sidebar is Closed */}
-      {!sidebarOpen && (
-        <div className="flex items-center justify-between p-4 bg-blue-900 text-white w-full fixed top-0 left-0 z-10 md:hidden">
-          <h1 className="text-xl font-bold">Avion Admin</h1>
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="text-white text-2xl"
-          >
-            <FaBars />
-          </button>
-        </div>
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 transform fixed top-0 left-0 w-64 bg-blue-900 text-white h-full transition-transform duration-300 z-20`}
-      >
-        <div className="flex justify-between items-center p-4 border-b border-blue-700">
-          <h1 className="text-xl font-bold">Avion</h1>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="text-white text-2xl md:hidden"
-          >
-            <FaTimes />
-          </button>
-        </div>
-        <nav className="flex flex-col p-4 gap-4">
-          <Link href="/admin" className="flex items-center gap-2 hover:bg-blue-700 p-2 rounded">
-            <FaChartBar /> Dashboard
-          </Link>
-          <Link href="/Admin/Products" className="flex items-center gap-2 hover:bg-blue-700 p-2 rounded">
-            <FaBox /> Products
-          </Link>
-          <Link href="#" className="flex items-center gap-2 hover:bg-blue-700 p-2 rounded">
-            <FaList /> Categories
-          </Link>
-          <Link href="#" className="flex items-center gap-2 hover:bg-blue-700 p-2 rounded">
-            <FaUser /> Customers
-          </Link>
-          <Link href="#" className="flex items-center gap-2 hover:bg-blue-700 p-2 rounded">
-            <FaUser /> Orders
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 hover:bg-red-700 p-2 rounded text-red-500 mt-4"
-          >
-            <FaSignOutAlt /> Logout
-          </button>
-        </nav>
-      </aside>
-
-      {/* Overlay to Close Sidebar */}
-      {sidebarOpen && (
-        <div
-          onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black opacity-50 md:hidden"
-        ></div>
-      )}
-    </div>
+    <section className="sticky top-0 flex flex-col gap-10 bg-white border-r px-5 py-3 h-screen overflow-hidden w-[260px] z-50">
+      <div className="flex justify-center py-4">
+        <Link href={`/`}>
+          <h1 className="font-extrabold text-5xl text-[#2A254B]">Avion</h1>
+        </Link>
+      </div>
+      <ul className="flex-1 h-full overflow-y-auto flex flex-col gap-4">
+        {menuList?.map((item, key) => {
+          if (item.isLogout) {
+            // Render the logout button
+            return (
+              <div className="flex justify-center" key={key}>
+                <button
+                  onClick={handleLogout} // Calling the logout handler
+                  className="flex gap-2 items-center px-8 py-11 w-full justify-center ease-soft-spring duration-400 transition-all text-[#2A254B]"
+                >
+                  {item.icon} {item.name}
+                </button>
+              </div>
+            );
+          }
+          return <Tab item={item} key={key} />;
+        })}
+      </ul>
+    </section>
   );
-};
+}
 
-export default SideBar;
+// Pass the defined type as a prop to the Tab component
+function Tab({ item }: { item: MenuItem }) {
+  const pathname = usePathname();
+  const isSelected = pathname === item?.link;
+  return (
+    <Link href={item?.link}>
+      <li
+        className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold ease-soft-spring transition-all duration-300
+        ${isSelected ? "bg-[#2A254B] text-white" : "bg-white text-[#2A254B]"} 
+        `}
+      >
+        {item?.icon} {item?.name}
+      </li>
+    </Link>
+  );
+}

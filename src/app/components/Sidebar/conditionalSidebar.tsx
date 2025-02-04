@@ -8,20 +8,9 @@ import Header from "../Header";
 const ConditionalSideBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const sidebarRef = useRef<HTMLDivElement | null>(null); /
+  const sidebarRef = useRef<HTMLDivElement | null>(null);
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
-
-  if (pathname === "/Login" || pathname === "/") {
-    return null;
-  }
-
-  useEffect(() => {
-    toggleSidebar();
-  }, [pathname]);
-
+  // Close sidebar on outside click
   useEffect(() => {
     function handleClickOutsideEvent(event: MouseEvent) {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -34,6 +23,15 @@ const ConditionalSideBar = () => {
     };
   }, []);
 
+  // Close sidebar on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  if (pathname === "/Login" || pathname === "/") {
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen">
       {/* Sidebar for larger screens */}
@@ -44,17 +42,20 @@ const ConditionalSideBar = () => {
       {/* Sidebar for smaller screens */}
       <div
         ref={sidebarRef}
-        className={`fixed block md:hidden transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-[260px]"}`}
+        className={`fixed block md:hidden transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "-translate-x-[260px]"
+        }`}
       >
         <SideBar />
       </div>
 
       {/* Header and content */}
       <div className="flex-1 flex flex-col">
-        <Header toggleSidebar={toggleSidebar} />
+        <Header toggleSidebar={() => setIsOpen(!isOpen)} />
       </div>
     </div>
   );
 };
 
 export default ConditionalSideBar;
+
